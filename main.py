@@ -1,14 +1,10 @@
-# main.py
 from fastapi import FastAPI
+from routes import users, listings
 from database import Base, engine
-from routes import users
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="SavePlate API")
+app = FastAPI()
 
 app.include_router(users.router)
-
-@app.get("/")
-def root():
-    return {"message": "SavePlate backend running!"}
+app.include_router(listings.router)
