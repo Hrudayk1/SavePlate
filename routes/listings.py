@@ -16,7 +16,7 @@ def create_listing(user_id: int, listing: ListingCreate, db: Session = Depends(g
     if user.type != "Business":
         raise HTTPException(status_code=403, detail="Only Business users can create listings")
 
-    new_listing = Listing(**listing.dict(), seller_id=user.user_id)
+    new_listing = Listing(**listing.dict(), seller_id=user.user_id, seller_name=user.name)
     db.add(new_listing)
     db.commit()
     db.refresh(new_listing)

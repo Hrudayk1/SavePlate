@@ -16,7 +16,7 @@ class ListingCreate(ListingBase):
 
 class ListingResponse(ListingBase):
     item_id: int
-    seller_id: int
+    seller_name: str
     is_sold: bool
 
     class Config:

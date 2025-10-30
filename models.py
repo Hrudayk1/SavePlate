@@ -26,4 +26,5 @@ class Listing(Base):
     is_sold = Column(Boolean, default=False)
 
     seller_id = Column(Integer, ForeignKey("users.user_id"))
+    seller_name = Column(String, nullable=False)
     seller = relationship("User", back_populates="listings")
