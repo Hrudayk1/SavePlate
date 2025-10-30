@@ -25,8 +25,13 @@ def create_listing(user_id: int, listing: ListingCreate, db: Session = Depends(g
 
 # View all listings (Consumers + Businesses)
 @router.get("/", response_model=list[ListingResponse])
-def get_all_listings(db: Session = Depends(get_db)):
-    listings = db.query(Listing).filter().all()
+def get_all_listings(city: str | None = None, db: Session = Depends(get_db)):
+    query = db.query(Listing)
+    
+    if city:
+        query = query.filter(Listing.city.ilike(f"%{city}%"))  # optional case-insensitive city filter
+    
+    listings = query.all()
     return listings
 
 
