@@ -20,6 +20,7 @@ class Listing(Base):
     item_id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     description = Column(String)
+    cuisine = Column(String)
     price = Column(Float, nullable=False)
     city = Column(String, nullable=False)
     available_until = Column(DateTime, default=datetime.utcnow)
