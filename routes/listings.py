@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from database import get_db
 from models import User, Listing
 from schemas import ListingCreate, ListingResponse
@@ -25,15 +26,39 @@ def create_listing(user_id: int, listing: ListingCreate, db: Session = Depends(g
 
 # View all listings (Consumers + Businesses)
 @router.get("/", response_model=list[ListingResponse])
-def get_all_listings(city: str | None = None, cuisine: str | None = None, db: Session = Depends(get_db)):
+def get_all_listings(
+    city: str | None = None,
+    cuisine: str | None = None,
+    search: str | None = None,
+    include_sold: bool = False,
+    db: Session = Depends(get_db)
+):
     query = db.query(Listing)
-    
+
+    # Optional filters
     if city:
-        query = query.filter(Listing.city.ilike(f"%{city}%"))  # optional case-insensitive city filter
+        query = query.filter(Listing.city.ilike(f"%{city}%"))
 
     if cuisine:
         query = query.filter(Listing.cuisine.ilike(f"%{cuisine}%"))
-    
+
+    # Optional search filter across multiple fields
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.filter(
+            or_(
+                Listing.title.ilike(search_pattern),
+                Listing.description.ilike(search_pattern),
+                Listing.city.ilike(search_pattern),
+                Listing.cuisine.ilike(search_pattern),
+                Listing.seller_name.ilike(search_pattern)
+            )
+        )
+
+    # Optional filter to include/exclude sold listings
+    if not include_sold:
+        query = query.filter(Listing.is_sold == False)
+
     listings = query.all()
     return listings
 
