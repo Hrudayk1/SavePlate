@@ -9,6 +9,7 @@ class User(Base):
     user_id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
+    password = Column(String, nullable=False)
     type = Column(String, nullable=False)  # "Business" or "Consumer"
 
     listings = relationship("Listing", back_populates="seller")

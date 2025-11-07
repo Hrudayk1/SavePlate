@@ -26,13 +26,25 @@ class UserType(str, Enum):
 def create_user(
     name: str,
     email: str,
+    password: str,
     type: UserType,  # dropdown
     db: Session = Depends(get_db)
 ):
-    user = User(name=name, email=email, type=type.value)
+    # Validate password (at least 6 characters)
+    if len(password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters long.")
+
+    # Check if email already exists
+    existing_user = db.query(User).filter(User.email == email).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered.")
+
+    # Create and save user
+    user = User(name=name, email=email, type=type.value, password=password)
     db.add(user)
     db.commit()
     db.refresh(user)
+
     return {
         "message": "User created successfully",
         "user_id": user.user_id,
@@ -47,6 +59,11 @@ def create_user(
 def list_users(db: Session = Depends(get_db)):
     users = db.query(User).all()
     return [
-        {"user_id": u.user_id, "name": u.name, "email": u.email, "type": u.type}
+        {
+            "user_id": u.user_id,
+            "name": u.name,
+            "email": u.email,
+            "type": u.type
+        }
         for u in users
     ]
