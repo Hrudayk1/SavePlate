@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
+from typing import Optional
+from datetime import datetime
+
 from database import get_db
 from models import User, Listing
 from schemas import ListingCreate, ListingResponse
@@ -27,9 +30,9 @@ def create_listing(user_id: int, listing: ListingCreate, db: Session = Depends(g
 # View all listings (Consumers + Businesses)
 @router.get("/", response_model=list[ListingResponse])
 def get_all_listings(
-    city: str | None = None,
-    cuisine: str | None = None,
-    search: str | None = None,
+    city: Optional[str] = None,
+    cuisine: Optional[str] = None,
+    search: Optional[str] = None,
     include_sold: bool = False,
     db: Session = Depends(get_db)
 ):
@@ -38,7 +41,6 @@ def get_all_listings(
     # Optional filters
     if city:
         query = query.filter(Listing.city.ilike(f"%{city}%"))
-
     if cuisine:
         query = query.filter(Listing.cuisine.ilike(f"%{cuisine}%"))
 
@@ -63,9 +65,20 @@ def get_all_listings(
     return listings
 
 
-# Mark a listing as sold (only the seller)
-@router.put("/{listing_id}/sold", response_model=ListingResponse)
-def mark_listing_sold(listing_id: int, user_id: int, db: Session = Depends(get_db)):
+# Update listing (only the seller, any field can be updated)
+@router.put("/{listing_id}/update", response_model=ListingResponse)
+def update_listing(
+    listing_id: int,
+    user_id: int,
+    title: Optional[str] = None,
+    description: Optional[str] = None,
+    city: Optional[str] = None,
+    cuisine: Optional[str] = None,
+    price: Optional[float] = None,
+    available_until: Optional[datetime] = None,
+    is_sold: Optional[bool] = None,
+    db: Session = Depends(get_db)
+):
     listing = db.query(Listing).filter(Listing.item_id == listing_id).first()
     if not listing:
         raise HTTPException(status_code=404, detail="Listing not found")
@@ -73,7 +86,22 @@ def mark_listing_sold(listing_id: int, user_id: int, db: Session = Depends(get_d
     if listing.seller_id != user_id:
         raise HTTPException(status_code=403, detail="You can only update your own listings")
 
-    listing.is_sold = True
+    # Update only provided fields
+    if title is not None:
+        listing.title = title
+    if description is not None:
+        listing.description = description
+    if city is not None:
+        listing.city = city
+    if cuisine is not None:
+        listing.cuisine = cuisine
+    if price is not None:
+        listing.price = price
+    if available_until is not None:
+        listing.available_until = available_until
+    if is_sold is not None:
+        listing.is_sold = is_sold
+
     db.commit()
     db.refresh(listing)
     return listing
