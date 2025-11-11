@@ -22,3 +22,18 @@ class ListingResponse(ListingBase):
 
     class Config:
         from_attributes = True
+
+class OrderResponse(BaseModel):
+    order_id: int
+    seller_id: int
+    seller_name: str
+    item_id: int
+    item_name: str
+    price: float
+    ordered_at: datetime
+    buyer_id: int
+    buyer_name: str
+
+    class Config:
+        from_attributes = True
+

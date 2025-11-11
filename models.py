@@ -30,3 +30,21 @@ class Listing(Base):
     seller_id = Column(Integer, ForeignKey("users.user_id"))
     seller_name = Column(String, nullable=False)
     seller = relationship("User", back_populates="listings")
+
+class Order(Base):
+    __tablename__ = "orders"
+
+    order_id = Column(Integer, primary_key=True, index=True)
+    seller_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    seller_name = Column(String, nullable=False)
+    buyer_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    buyer_name = Column(String, nullable=False)
+    item_id = Column(Integer, ForeignKey("listings.item_id"), nullable=False)
+    item_name = Column(String, nullable=False)
+    price = Column(Float, nullable=False)
+    ordered_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    listing = relationship("Listing")
+    buyer = relationship("User", foreign_keys=[buyer_id])
+    seller = relationship("User", foreign_keys=[seller_id])
