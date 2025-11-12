@@ -37,3 +37,18 @@ class OrderResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class NegotiationBase(BaseModel):
+    listing_id: int
+    buyer_id: int
+    proposed_price: float
+
+class NegotiationResponse(NegotiationBase):
+    negotiation_id: int
+    seller_id: int
+    seller_response_price: Optional[float] = None
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
