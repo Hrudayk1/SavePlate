@@ -1,6 +1,22 @@
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
+from enum import Enum
+
+
+class NegotiationStatus(str, Enum):
+    pending = "Pending"
+    buyer_countered = "BuyerCountered"
+    seller_countered = "SellerCountered"
+    accepted = "Accepted"
+    rejected = "Rejected"
+
+
+class NegotiationAction(str, Enum):
+    accept = "Accept"
+    reject = "Reject"
+    counter = "Counter"
+
 
 class ListingBase(BaseModel):
     title: str
@@ -40,15 +56,28 @@ class OrderResponse(BaseModel):
 class NegotiationBase(BaseModel):
     listing_id: int
     buyer_id: int
-    proposed_price: float
+    buyer_proposed_price: float
 
-class NegotiationResponse(NegotiationBase):
+class NegotiationResponse(BaseModel):
     negotiation_id: int
+    listing_id: int
+    buyer_id: int
     seller_id: int
+    buyer_proposed_price: Optional[float] = None
     seller_response_price: Optional[float] = None
-    status: str
+    status: NegotiationStatus
     created_at: datetime
     updated_at: datetime
 
     class Config:
         from_attributes = True
+
+class SellerResponseIn(BaseModel):
+    seller_id: int
+    action: NegotiationAction
+    counter_price: Optional[float] = None
+
+class BuyerResponseIn(BaseModel):
+    buyer_id: int
+    action: NegotiationAction
+    counter_price: Optional[float] = None

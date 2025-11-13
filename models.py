@@ -68,14 +68,17 @@ class Negotiation(Base):
     buyer_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
     seller_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
 
-    proposed_price = Column(Float, nullable=False)
+    # Each side’s latest price proposal
+    buyer_proposed_price = Column(Float, nullable=False)
     seller_response_price = Column(Float, nullable=True)
-    status = Column(String, default="Pending")  # "Pending", "Accepted", "Rejected", "Countered"
+
+    # Negotiation status: Pending, BuyerCountered, SellerCountered, Accepted, Rejected
+    status = Column(String, default="Pending")
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    listing = relationship("Listing", back_populates="negotiations")
-    buyer = relationship("User", foreign_keys=[buyer_id], back_populates="buyer_negotiations")
-    seller = relationship("User", foreign_keys=[seller_id], back_populates="seller_negotiations")
+    listing = relationship("Listing")
+    buyer = relationship("User", foreign_keys=[buyer_id])
+    seller = relationship("User", foreign_keys=[seller_id])
