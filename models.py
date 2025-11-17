@@ -18,6 +18,7 @@ class User(Base):
     seller_orders = relationship("Order", foreign_keys="[Order.seller_id]", back_populates="seller")
     buyer_negotiations = relationship("Negotiation", foreign_keys="[Negotiation.buyer_id]", back_populates="buyer")
     seller_negotiations = relationship("Negotiation", foreign_keys="[Negotiation.seller_id]", back_populates="seller")
+    notifications = relationship("Notification", back_populates="user", cascade="all, delete")
 
 
 class Listing(Base):
@@ -82,3 +83,14 @@ class Negotiation(Base):
     listing = relationship("Listing")
     buyer = relationship("User", foreign_keys=[buyer_id])
     seller = relationship("User", foreign_keys=[seller_id])
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    notification_id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    message = Column(String, nullable=False)
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="notifications")

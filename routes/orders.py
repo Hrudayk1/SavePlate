@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from datetime import datetime
 from database import get_db
-from models import User, Listing, Order
+from models import User, Listing, Order, Notification
 from schemas import OrderResponse
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
@@ -52,6 +52,21 @@ def place_order(
     db.add(new_order)
     db.commit()
     db.refresh(new_order)
+
+    db.add_all([
+        Notification(
+            user_id=seller.user_id,
+            message=f"New order placed for your listing '{listing.title}' by {buyer.name} at ₹{listing.price}",
+            created_at=datetime.utcnow()
+        ),
+        Notification(
+            user_id=buyer.user_id,
+            message=f"You placed an order for '{listing.title}' from {seller.name} at ₹{listing.price}",
+            created_at=datetime.utcnow()
+        )
+    ])
+    db.commit()
+
     return new_order
 
 
