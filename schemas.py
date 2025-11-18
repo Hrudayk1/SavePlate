@@ -18,6 +18,7 @@ class NegotiationAction(str, Enum):
     counter = "Counter"
 
 
+#  LISTINGS 
 class ListingBase(BaseModel):
     title: str
     description: Optional[str] = None
@@ -39,6 +40,7 @@ class ListingResponse(ListingBase):
     class Config:
         from_attributes = True
 
+#  ORDERS 
 class OrderResponse(BaseModel):
     order_id: int
     seller_id: int
@@ -49,10 +51,12 @@ class OrderResponse(BaseModel):
     ordered_at: datetime
     buyer_id: int
     buyer_name: str
+    payment_status: Optional[bool] = None
 
     class Config:
         from_attributes = True
 
+#  NEGOTIATIONS 
 class NegotiationBase(BaseModel):
     listing_id: int
     buyer_id: int
@@ -82,6 +86,7 @@ class BuyerResponseIn(BaseModel):
     action: NegotiationAction
     counter_price: Optional[float] = None
 
+#  NOTIFICATIONS 
 class NotificationBase(BaseModel):
     message: str
 
@@ -93,6 +98,20 @@ class NotificationResponse(NotificationBase):
     user_id: int
     is_read: bool
     created_at: datetime
+
+    class Config:
+        from_attributes = True
+        
+#  PAYMENT 
+class PaymentCreate(BaseModel):
+    order_id: int
+
+
+class PaymentResponse(BaseModel):
+    payment_id: int
+    order_id: int
+    paid: bool
+    paid_at: datetime
 
     class Config:
         from_attributes = True

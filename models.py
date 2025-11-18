@@ -94,3 +94,14 @@ class Notification(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="notifications")
+
+class Payment(Base):
+    __tablename__ = "payments"
+
+    payment_id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.order_id"), nullable=False)
+    buyer_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    seller_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    amount = Column(Float, nullable=False)
+    status = Column(String, default="success")
+    created_at = Column(DateTime, default=datetime.utcnow)
