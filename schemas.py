@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from enum import Enum
 
 
@@ -26,6 +26,12 @@ class ListingBase(BaseModel):
     price: float
     city: str
     available_until: Optional[datetime] = None
+
+    # FOOD SAFETY FIELDS
+    prepared_at: datetime
+    expires_at: datetime
+    allergens: Optional[str] = None
+    photo_url: Optional[str] = None
 
 
 class ListingCreate(ListingBase):

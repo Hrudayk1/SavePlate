@@ -31,6 +31,13 @@ class Listing(Base):
     price = Column(Float, nullable=False)
     city = Column(String, nullable=False)
     available_until = Column(DateTime, default=datetime.utcnow)
+
+    # Food safety tracking
+    prepared_at = Column(DateTime, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    allergens = Column(String, nullable=True)   
+    photo_url = Column(String, nullable=True)
+
     is_sold = Column(Boolean, default=False)
 
     seller_id = Column(Integer, ForeignKey("users.user_id"))

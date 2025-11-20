@@ -20,7 +20,12 @@ def create_listing(user_id: int, listing: ListingCreate, db: Session = Depends(g
     if user.type != "Business":
         raise HTTPException(status_code=403, detail="Only Business users can create listings")
 
-    new_listing = Listing(**listing.dict(), seller_id=user.user_id, seller_name=user.name)
+    new_listing = Listing(
+        **listing.dict(),
+        seller_id=user.user_id,
+        seller_name=user.name
+    )
+
     db.add(new_listing)
     db.commit()
     db.refresh(new_listing)
@@ -61,8 +66,7 @@ def get_all_listings(
     if not include_sold:
         query = query.filter(Listing.is_sold == False)
 
-    listings = query.all()
-    return listings
+    return query.all()
 
 
 # Update listing (only the seller, any field can be updated)
@@ -77,6 +81,10 @@ def update_listing(
     price: Optional[float] = None,
     available_until: Optional[datetime] = None,
     is_sold: Optional[bool] = None,
+    prepared_at: Optional[datetime] = None,
+    expires_at: Optional[datetime] = None,
+    allergens: Optional[str] = None,
+    photo_url: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     listing = db.query(Listing).filter(Listing.item_id == listing_id).first()
@@ -86,21 +94,17 @@ def update_listing(
     if listing.seller_id != user_id:
         raise HTTPException(status_code=403, detail="You can only update your own listings")
 
-    # Update only provided fields
-    if title is not None:
-        listing.title = title
-    if description is not None:
-        listing.description = description
-    if city is not None:
-        listing.city = city
-    if cuisine is not None:
-        listing.cuisine = cuisine
-    if price is not None:
-        listing.price = price
-    if available_until is not None:
-        listing.available_until = available_until
-    if is_sold is not None:
-        listing.is_sold = is_sold
+    if title is not None: listing.title = title
+    if description is not None: listing.description = description
+    if city is not None: listing.city = city
+    if cuisine is not None: listing.cuisine = cuisine
+    if price is not None: listing.price = price
+    if available_until is not None: listing.available_until = available_until
+    if is_sold is not None: listing.is_sold = is_sold
+    if prepared_at is not None: listing.prepared_at = prepared_at
+    if expires_at is not None: listing.expires_at = expires_at
+    if allergens is not None: listing.allergens = allergens
+    if photo_url is not None: listing.photo_url = photo_url
 
     db.commit()
     db.refresh(listing)
