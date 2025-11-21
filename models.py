@@ -40,6 +40,10 @@ class Listing(Base):
 
     is_sold = Column(Boolean, default=False)
 
+    # Dynamic pricing fields
+    dynamic_pricing_enabled = Column(Boolean, default=False)
+    original_price = Column(Float, nullable=False)
+
     seller_id = Column(Integer, ForeignKey("users.user_id"))
     seller_name = Column(String, nullable=False)
 
@@ -47,6 +51,33 @@ class Listing(Base):
     seller = relationship("User", back_populates="listings")
     orders = relationship("Order", back_populates="listing")
     negotiations = relationship("Negotiation", back_populates="listing")
+
+    def compute_dynamic_price(self, now):
+        """
+        Compute new price using the simple rule:
+         - hours_left >= 24  => original_price
+         - 12 <= hours_left < 24 => 50% of original_price
+         - hours_left < 12 => 25% of original_price
+        Returns the computed price (float).
+        """
+        try:
+            total_seconds = (self.expires_at - now).total_seconds()
+        except Exception:
+            # If expires_at invalid, fallback to current price
+            return self.price
+
+        hours_left = total_seconds / 3600.0
+
+        if hours_left < 0:
+            # expired
+            return 0.0
+
+        if hours_left >= 24:
+            return round(float(self.original_price), 2)
+        if 12 <= hours_left < 24:
+            return round(float(self.original_price) * 0.5, 2)
+        # hours_left < 12
+        return round(float(self.original_price) * 0.25, 2)
 
 
 class Order(Base):
@@ -76,17 +107,14 @@ class Negotiation(Base):
     buyer_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
     seller_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
 
-    # Each side’s latest price proposal
     buyer_proposed_price = Column(Float, nullable=False)
     seller_response_price = Column(Float, nullable=True)
 
-    # Negotiation status: Pending, BuyerCountered, SellerCountered, Accepted, Rejected
     status = Column(String, default="Pending")
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Relationships
     listing = relationship("Listing")
     buyer = relationship("User", foreign_keys=[buyer_id])
     seller = relationship("User", foreign_keys=[seller_id])

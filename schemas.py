@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 from enum import Enum
 
 
@@ -33,6 +33,7 @@ class ListingBase(BaseModel):
     allergens: Optional[str] = None
     photo_url: Optional[str] = None
 
+    dynamic_pricing_enabled: Optional[bool] = False
 
 class ListingCreate(ListingBase):
     pass
@@ -42,6 +43,7 @@ class ListingResponse(ListingBase):
     item_id: int
     seller_name: str
     is_sold: bool
+    original_price: float
 
     class Config:
         from_attributes = True
