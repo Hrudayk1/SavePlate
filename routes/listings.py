@@ -13,15 +13,50 @@ router = APIRouter(prefix="/listings", tags=["Listings"])
 
 def _recalculate_and_persist_for_listings(db: Session, listings):
     """
-    Recalculate dynamic price for provided listing objects.
-    If price changes, update DB and create a notification for seller.
-    Returns True if any changes were committed (for caller to commit).
+    Centralized logic for:
+      1. Handling expiration:
+         - If available_until or expires_at has passed:
+           - Mark listing as sold
+           - Disable dynamic pricing
+           - Notify seller
+      2. Dynamic pricing recalculation
+         - Only if listing is not expired
+         - Notify seller on price change
+
+    Returns True if any DB update is needed.
     """
     now = datetime.utcnow()
     notifications_to_add = []
     any_change = False
 
     for listing in listings:
+
+        expired = False
+
+        # A listing expires if EITHER expires_at OR available_until has passed
+        if listing.expires_at and listing.expires_at < now:
+            expired = True
+
+        if listing.available_until and listing.available_until < now:
+            expired = True
+
+        if expired:
+            if not listing.is_sold or listing.dynamic_pricing_enabled:
+                listing.is_sold = True
+                listing.dynamic_pricing_enabled = False
+                any_change = True
+
+                notifications_to_add.append(
+                    Notification(
+                        user_id=listing.seller_id,
+                        message=f"Your listing '{listing.title}' has expired and is now marked as sold.",
+                        created_at=datetime.utcnow()
+                    )
+                )
+
+            continue  # no dynamic pricing for expired listings
+
+        # DYNAMIC PRICING 
         if not listing.dynamic_pricing_enabled:
             continue
 
@@ -34,12 +69,10 @@ def _recalculate_and_persist_for_listings(db: Session, listings):
             listing.price = new_price
             any_change = True
 
-            # Create notification for seller
-            msg = f"Dynamic pricing updated: new price for '{listing.title}' is ₹{listing.price}"
             notifications_to_add.append(
                 Notification(
                     user_id=listing.seller_id,
-                    message=msg,
+                    message=f"Dynamic pricing updated: new price for '{listing.title}' is ₹{listing.price}",
                     created_at=datetime.utcnow()
                 )
             )
@@ -191,7 +224,7 @@ def update_listing(
 
     # Handle dynamic pricing toggle
     if dynamic_pricing_enabled is not None:
-        # Option A: when disabling, freeze price at whatever it currently is (do nothing to revert)
+        # when disabling, freeze price at whatever it currently is (do nothing to revert)
         if dynamic_pricing_enabled and not listing.dynamic_pricing_enabled:
             # turning ON: ensure original_price is set (store whatever current price is)
             listing.original_price = listing.price
