@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 
 from database import get_db
-from models import Message, User
+from models import Message, User, Notification
 from schemas import MessageCreate, MessageResponse
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
@@ -35,6 +35,17 @@ def send_message(
     db.add(msg)
     db.commit()
     db.refresh(msg)
+
+    # notification for the receiver 
+    db.add(
+        Notification(
+            user_id=receiver.user_id,
+            message=f"New message from {sender.name}: \"{message.content}\"",
+            created_at=datetime.utcnow()
+        )
+    )
+    db.commit()
+
     return msg
 
 
