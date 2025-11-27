@@ -22,6 +22,8 @@ class User(Base):
     charity_profiles = relationship("CharityProfile", back_populates="user")
     donations_posted = relationship("Donation", back_populates="business", foreign_keys="Donation.business_id")
 
+    sent_messages = relationship("Message", foreign_keys="[Message.sender_id]", back_populates="sender")
+    received_messages = relationship("Message", foreign_keys="[Message.receiver_id]", back_populates="receiver")
 
 class Listing(Base):
     __tablename__ = "listings"
@@ -186,3 +188,15 @@ class Donation(Base):
 
     business = relationship("User", back_populates="donations_posted", foreign_keys=[business_id])
     charity = relationship("CharityProfile", back_populates="donations_received", foreign_keys=[charity_id])
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    sender_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    receiver_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    content = Column(String, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+    sender = relationship("User", foreign_keys=[sender_id], back_populates="sent_messages")
+    receiver = relationship("User", foreign_keys=[receiver_id], back_populates="received_messages")
