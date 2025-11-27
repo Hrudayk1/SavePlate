@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from enum import Enum
 
 
@@ -120,6 +120,53 @@ class PaymentResponse(BaseModel):
     order_id: int
     paid: bool
     paid_at: datetime
+
+    class Config:
+        from_attributes = True
+
+# CHARITY & DONATIONS
+class CharityCreate(BaseModel):
+    org_name: str
+    description: Optional[str] = None
+    city: str
+
+
+class CharityResponse(CharityCreate):
+    charity_id: int
+    user_id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class DonationCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    cuisine: Optional[str] = None
+    available_until: Optional[datetime] = None
+    prepared_at: datetime
+    expires_at: datetime
+    allergens: Optional[str] = None
+    photo_url: Optional[str] = None
+    city: str
+
+
+class DonationResponse(BaseModel):
+    donation_id: int
+    business_id: int
+    charity_id: int
+    title: str
+    description: Optional[str] = None
+    cuisine: Optional[str] = None
+    city: str
+    allergens: Optional[str] = None
+    photo_url: Optional[str] = None
+    available_until: Optional[datetime] = None
+    prepared_at: datetime
+    expires_at: datetime
+    is_collected: bool
+    created_at: datetime
 
     class Config:
         from_attributes = True

@@ -11,7 +11,7 @@ class User(Base):
     name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
-    type = Column(String, nullable=False)  # "Business" or "Consumer"
+    type = Column(String, nullable=False)  # "Business" or "Consumer" or "Charity"
 
     listings = relationship("Listing", back_populates="seller")
     buyer_orders = relationship("Order", foreign_keys="[Order.buyer_id]", back_populates="buyer")
@@ -19,6 +19,8 @@ class User(Base):
     buyer_negotiations = relationship("Negotiation", foreign_keys="[Negotiation.buyer_id]", back_populates="buyer")
     seller_negotiations = relationship("Negotiation", foreign_keys="[Negotiation.seller_id]", back_populates="seller")
     notifications = relationship("Notification", back_populates="user", cascade="all, delete")
+    charity_profiles = relationship("CharityProfile", back_populates="user")
+    donations_posted = relationship("Donation", back_populates="business", foreign_keys="Donation.business_id")
 
 
 class Listing(Base):
@@ -119,6 +121,7 @@ class Negotiation(Base):
     buyer = relationship("User", foreign_keys=[buyer_id])
     seller = relationship("User", foreign_keys=[seller_id])
 
+
 class Notification(Base):
     __tablename__ = "notifications"
 
@@ -130,6 +133,7 @@ class Notification(Base):
 
     user = relationship("User", back_populates="notifications")
 
+
 class Payment(Base):
     __tablename__ = "payments"
 
@@ -140,3 +144,45 @@ class Payment(Base):
     amount = Column(Float, nullable=False)
     status = Column(String, default="success")
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class CharityProfile(Base):
+    __tablename__ = "charity_profiles"
+
+    charity_id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+
+    org_name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    city = Column(String, nullable=False)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="charity_profiles")
+    donations_received = relationship("Donation", back_populates="charity", foreign_keys="Donation.charity_id")
+
+
+class Donation(Base):
+    __tablename__ = "donations"
+
+    donation_id = Column(Integer, primary_key=True, index=True)
+
+    business_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    charity_id = Column(Integer, ForeignKey("charity_profiles.charity_id"), nullable=False)
+
+    title = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    cuisine = Column(String, nullable=True)
+    city = Column(String, nullable=False)
+    allergens = Column(String, nullable=True)
+    photo_url = Column(String, nullable=True)
+
+    available_until = Column(DateTime, nullable=True)
+    prepared_at = Column(DateTime, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+
+    is_collected = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    business = relationship("User", back_populates="donations_posted", foreign_keys=[business_id])
+    charity = relationship("CharityProfile", back_populates="donations_received", foreign_keys=[charity_id])

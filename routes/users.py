@@ -19,6 +19,7 @@ def get_db():
 class UserType(str, Enum):
     business = "Business"
     consumer = "Consumer"
+    charity = "Charity"
 
 
 # Create user (Business or Consumer)
