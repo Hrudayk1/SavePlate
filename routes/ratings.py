@@ -35,6 +35,15 @@ def rate_order(
     if seller.type != "Business":
         raise HTTPException(status_code=403, detail="Only business accounts can be rated")
 
+    # CHECK DUPLICATE RATING
+    existing = (
+        db.query(Rating)
+        .filter(Rating.rater_id == buyer_id, Rating.order_id == order_id)
+        .first()
+    )
+    if existing:
+        raise HTTPException(status_code=400, detail="You have already rated this order")
+
     rating = Rating(
         rater_id=buyer_id,
         rated_id=seller.user_id,
@@ -53,7 +62,7 @@ def rate_order(
 # RATE DONATION
 @router.post("/rate-donation", response_model=RatingResponse)
 def rate_donation(
-    charity_id: int = Query(...),
+    charity_user_id: int = Query(..., description="User ID of the charity account"),
     donation_id: int = Query(...),
     score: int = Query(...),
     db: Session = Depends(get_db)
@@ -61,10 +70,10 @@ def rate_donation(
     if score < 1 or score > 5:
         raise HTTPException(status_code=400, detail="Rating must be between 1 and 5")
 
-    charity = db.query(User).filter(User.user_id == charity_id).first()
-    if not charity:
-        raise HTTPException(status_code=404, detail="Charity account not found")
-    if charity.type != "Charity":
+    charity_user = db.query(User).filter(User.user_id == charity_user_id).first()
+    if not charity_user:
+        raise HTTPException(status_code=404, detail="Charity user account not found")
+    if charity_user.type != "Charity":
         raise HTTPException(status_code=403, detail="Only charity accounts can rate donations")
 
     donation = db.query(Donation).filter(Donation.donation_id == donation_id).first()
@@ -77,8 +86,17 @@ def rate_donation(
     if business.type != "Business":
         raise HTTPException(status_code=403, detail="Only business accounts can be rated")
 
+    # CHECK DUPLICATE RATING
+    existing = (
+        db.query(Rating)
+        .filter(Rating.rater_id == charity_user_id, Rating.donation_id == donation_id)
+        .first()
+    )
+    if existing:
+        raise HTTPException(status_code=400, detail="You have already rated this donation")
+
     rating = Rating(
-        rater_id=charity_id,
+        rater_id=charity_user_id,
         rated_id=business.user_id,
         order_id=None,
         donation_id=donation_id,
