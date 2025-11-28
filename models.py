@@ -200,3 +200,15 @@ class Message(Base):
 
     sender = relationship("User", foreign_keys=[sender_id], back_populates="sent_messages")
     receiver = relationship("User", foreign_keys=[receiver_id], back_populates="received_messages")
+
+class Rating(Base):
+    __tablename__ = "ratings"
+
+    rating_id = Column(Integer, primary_key=True, index=True)
+    rater_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    rated_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+
+    order_id = Column(Integer, nullable=True)
+    donation_id = Column(Integer, nullable=True)
+
+    score = Column(Integer, nullable=False)  # 1–5 rating    

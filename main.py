@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routes import users, listings, orders, negotiations, notifications, payment, charity, donate, chat
+from routes import users, listings, orders, negotiations, notifications, payment, charity, donate, chat, ratings
 from database import Base, engine
 
 Base.metadata.create_all(bind=engine)
@@ -15,3 +15,4 @@ app.include_router(payment.router)
 app.include_router(charity.router)
 app.include_router(donate.router)
 app.include_router(chat.router)
+app.include_router(ratings.router)

@@ -185,3 +185,26 @@ class MessageResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+# RATINGS
+class RatingCreate(BaseModel):
+    rated_id: int
+    order_id: int | None = None
+    donation_id: int | None = None
+    score: int
+
+class RatingResponse(BaseModel):
+    rater_id: int
+    rated_id: int
+    order_id: int | None
+    donation_id: int | None
+    score: int
+
+    class Config:
+        from_attributes = True
+
+
+class RatingSummary(BaseModel):
+    rated_id: int
+    average_rating: float
+    total_ratings: int        
