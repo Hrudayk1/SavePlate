@@ -212,3 +212,19 @@ class Rating(Base):
     donation_id = Column(Integer, nullable=True)
 
     score = Column(Integer, nullable=False)  # 1–5 rating    
+
+
+class Support(Base):
+    __tablename__ = "support"
+
+    support_id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+
+    order_id = Column(Integer, ForeignKey("orders.order_id"), nullable=True)
+    donation_id = Column(Integer, ForeignKey("donations.donation_id"), nullable=True)
+
+    reason = Column(String, nullable=False)
+    submitted_at = Column(DateTime, default=datetime.utcnow)
+
+    is_resolved = Column(Boolean, default=False)
+    resolved_at = Column(DateTime, nullable=True)

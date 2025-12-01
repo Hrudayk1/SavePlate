@@ -20,6 +20,7 @@ class UserType(str, Enum):
     business = "Business"
     consumer = "Consumer"
     charity = "Charity"
+    support = "Support"
 
 
 # Create user (Business or Consumer)

@@ -208,3 +208,17 @@ class RatingSummary(BaseModel):
     rated_id: int
     average_rating: float
     total_ratings: int        
+
+# SUPPORT
+class SupportResponse(BaseModel):
+    support_id: int
+    user_id: int
+    order_id: int | None
+    donation_id: int | None
+    reason: str
+    submitted_at: datetime
+    is_resolved: bool
+    resolved_at: datetime | None
+
+    class Config:
+        from_attributes = True
